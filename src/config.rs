@@ -100,8 +100,12 @@ const CHARS: &[char] = &[
     'm', 'n', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
 ];
 
-pub const RENDEZVOUS_SERVERS: &[&str] = &["rs-ny.rustdesk.com"];
-pub const RS_PUB_KEY: &str = "OeVuKk5nlHiXp+APNn0Y3pC1Iwpwn44JGqrQCsWqmBw=";
+/********mzx change permission begin**********/
+// pub const RENDEZVOUS_SERVERS: &[&str] = &["rs-ny.rustdesk.com"];
+// pub const RS_PUB_KEY: &str = "OeVuKk5nlHiXp+APNn0Y3pC1Iwpwn44JGqrQCsWqmBw=";
+pub const RENDEZVOUS_SERVERS: &[&str] = &["test_rustdesk"];
+pub const RS_PUB_KEY: &str = "uQMioymZiASBpjuH93TxeVkGsqjNg2du1eI0vua6tMI=";
+/********mzx change permission end**********/
 
 pub const RENDEZVOUS_PORT: i32 = 21116;
 pub const RELAY_PORT: i32 = 21117;
