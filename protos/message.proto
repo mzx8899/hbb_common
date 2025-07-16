@@ -18,8 +18,8 @@ message YUV {
 }
 
 enum Chroma {
-  I420 = 8;
-  I444 = 9;
+  I420 = 0;
+  I444 = 1;
 }
 
 message VideoFrame {
@@ -199,22 +199,23 @@ message MouseEvent {
 }
 
 enum KeyboardMode{
-  Legacy = 10;
-  Map = 11;
-  Translate = 12;
+  Legacy = 0;
+  Map = 1;
+  Translate = 2;
   Auto = 3;
 }
+
 enum ControlKey {
-  Unknown = 80;
-  Alt = 81;
-  Backspace = 82;
-  CapsLock = 83;
-  Control = 84;
-  Delete = 85;
-  DownArrow = 86;
-  End = 87;
-  Escape = 88;
-  F1 = 89;
+  Unknown = 0;
+  Alt = 1;
+  Backspace = 2;
+  CapsLock = 3;
+  Control = 4;
+  Delete = 5;
+  DownArrow = 6;
+  End = 7;
+  Escape = 8;
+  F1 = 9;
   F10 = 10;
   F11 = 11;
   F12 = 12;
@@ -291,7 +292,6 @@ enum ControlKey {
   LockScreen = 101;
 }
 
-
 message KeyEvent {
   // `down` indicates the key's state(down or up).
   bool down = 1;
@@ -331,13 +331,13 @@ message Hash {
 }
 
 enum ClipboardFormat {
-  Text = 10;
-  Rtf = 11;
-  Html = 12;
-  ImageRgba = 41;
-  ImagePng = 42;
-  ImageSvg = 43;
-  Special = 51;
+  Text = 0;
+  Rtf = 1;
+  Html = 2;
+  ImageRgba = 21;
+  ImagePng = 22;
+  ImageSvg = 23;
+  Special = 31;
 }
 
 message Clipboard {
@@ -353,11 +353,11 @@ message Clipboard {
 message MultiClipboards { repeated Clipboard clipboards = 1; }
 
 enum FileType {
-  Dir = 10;
-  DirLink = 12;
-  DirDrive = 13;
-  File = 14;
-  FileLink = 15;
+  Dir = 0;
+  DirLink = 2;
+  DirDrive = 3;
+  File = 4;
+  FileLink = 5;
 }
 
 message FileEntry {
@@ -460,8 +460,8 @@ message FileTransferSendRequest {
   int32 file_num = 4;
 
   enum FileType {
-    Generic = 10;
-    Printer = 11;
+    Generic = 0;
+    Printer = 1;
   }
   FileType file_type = 5;
 }
@@ -611,13 +611,13 @@ message TogglePrivacyMode {
 
 message PermissionInfo {
   enum Permission {
-    Keyboard = 10;
-    Clipboard = 12;
-    Audio = 13;
-    File = 14;
-    Restart = 15;
-    Recording = 16;
-    BlockInput = 17;
+    Keyboard = 0;
+    Clipboard = 2;
+    Audio = 3;
+    File = 4;
+    Restart = 5;
+    Recording = 6;
+    BlockInput = 7;
   }
 
   Permission permission = 1;
@@ -625,20 +625,20 @@ message PermissionInfo {
 }
 
 enum ImageQuality {
-  NotSet = 10;
-  Low = 12;
-  Balanced = 13;
-  Best = 14;
+  NotSet = 0;
+  Low = 2;
+  Balanced = 3;
+  Best = 4;
 }
 
 message SupportedDecoding {
   enum PreferCodec {
-    Auto = 10;
-    VP9 = 11;
-    H264 = 12;
-    H265 = 13;
-    VP8 = 14;
-    AV1 = 15;
+    Auto = 0;
+    VP9 = 1;
+    H264 = 2;
+    H265 = 3;
+    VP8 = 4;
+    AV1 = 5;
   }
 
   int32 ability_vp9 = 1;
@@ -653,9 +653,9 @@ message SupportedDecoding {
 
 message OptionMessage {
   enum BoolOption {
-    NotSet = 10;
-    No = 11;
-    Yes = 12;
+    NotSet = 0;
+    No = 1;
+    Yes = 2;
   }
   ImageQuality image_quality = 1;
   BoolOption lock_after_session_end = 2;
@@ -718,33 +718,33 @@ message MessageBox {
 message BackNotification {
   // no need to consider block input by someone else
   enum BlockInputState {
-    BlkStateUnknown = 10;
-    BlkOnSucceeded = 12;
-    BlkOnFailed = 13;
-    BlkOffSucceeded = 14;
-    BlkOffFailed = 15;
+    BlkStateUnknown = 0;
+    BlkOnSucceeded = 2;
+    BlkOnFailed = 3;
+    BlkOffSucceeded = 4;
+    BlkOffFailed = 5;
   }
   enum PrivacyModeState {
-    PrvStateUnknown = 20;
+    PrvStateUnknown = 0;
     // Privacy mode on by someone else
-    PrvOnByOther = 22;
+    PrvOnByOther = 2;
     // Privacy mode is not supported on the remote side
-    PrvNotSupported = 23;
+    PrvNotSupported = 3;
     // Privacy mode on by self
-    PrvOnSucceeded = 24;
+    PrvOnSucceeded = 4;
     // Privacy mode on by self, but denied
-    PrvOnFailedDenied = 25;
+    PrvOnFailedDenied = 5;
     // Some plugins are not found
-    PrvOnFailedPlugin = 26;
+    PrvOnFailedPlugin = 6;
     // Privacy mode on by self, but failed
-    PrvOnFailed = 27;
+    PrvOnFailed = 7;
     // Privacy mode off by self
-    PrvOffSucceeded = 28;
+    PrvOffSucceeded = 8;
     // Ctrl + P
-    PrvOffByPeer = 29;
+    PrvOffByPeer = 9;
     // Privacy mode off by self, but failed
-    PrvOffFailed = 30;
-    PrvOffUnknown = 41;
+    PrvOffFailed = 10;
+    PrvOffUnknown = 11;
   }
 
   oneof union {
