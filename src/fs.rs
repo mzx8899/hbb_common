@@ -37,92 +37,96 @@ pub fn read_dir(path: &Path, include_hidden: bool) -> ResultType<FileDirectory> 
         path: get_string(path),
         ..Default::default()
     };
-    #[cfg(windows)]
-    if "/" == &get_string(path) {
-        let drives = unsafe { winapi::um::fileapi::GetLogicalDrives() };
-        for i in 0..32 {
-            if drives & (1 << i) != 0 {
-                let name = format!(
-                    "{}:",
-                    std::char::from_u32('A' as u32 + i as u32).unwrap_or('A')
-                );
-                dir.entries.push(FileEntry {
-                    name,
-                    entry_type: FileType::DirDrive.into(),
-                    ..Default::default()
-                });
-            }
-        }
-        return Ok(dir);
-    }
-    for entry in path.read_dir()?.flatten() {
-        let p = entry.path();
-        let name = p
-            .file_name()
-            .map(|p| p.to_str().unwrap_or(""))
-            .unwrap_or("")
-            .to_owned();
-        if name.is_empty() {
-            continue;
-        }
-        let mut is_hidden = false;
-        let meta;
-        if let Ok(tmp) = std::fs::symlink_metadata(&p) {
-            meta = tmp;
-        } else {
-            continue;
-        }
-        // docs.microsoft.com/en-us/windows/win32/fileio/file-attribute-constants
-        #[cfg(windows)]
-        if meta.file_attributes() & 0x2 != 0 {
-            is_hidden = true;
-        }
-        #[cfg(not(windows))]
-        if name.find('.').unwrap_or(usize::MAX) == 0 {
-            is_hidden = true;
-        }
-        if is_hidden && !include_hidden {
-            continue;
-        }
-        let (entry_type, size) = {
-            if p.is_dir() {
-                if meta.file_type().is_symlink() {
-                    (FileType::DirLink.into(), 0)
-                } else {
-                    (FileType::Dir.into(), 0)
-                }
-            } else if meta.file_type().is_symlink() {
-                (FileType::FileLink.into(), 0)
-            } else {
-                (FileType::File.into(), meta.len())
-            }
-        };
-        let modified_time = meta
-            .modified()
-            .map(|x| {
-                x.duration_since(std::time::SystemTime::UNIX_EPOCH)
-                    .map(|x| x.as_secs())
-                    .unwrap_or(0)
-            })
-            .unwrap_or(0);
-        dir.entries.push(FileEntry {
-            name: get_file_name(&p),
-            entry_type,
-            is_hidden,
-            size,
-            modified_time,
-            ..Default::default()
-        });
-    }
+    /**************** mzx change it ***********/
+    // #[cfg(windows)]
+    // if "/" == &get_string(path) {
+    //     let drives = unsafe { winapi::um::fileapi::GetLogicalDrives() };
+    //     for i in 0..32 {
+    //         if drives & (1 << i) != 0 {
+    //             let name = format!(
+    //                 "{}:",
+    //                 std::char::from_u32('A' as u32 + i as u32).unwrap_or('A')
+    //             );
+    //             dir.entries.push(FileEntry {
+    //                 name,
+    //                 entry_type: FileType::DirDrive.into(),
+    //                 ..Default::default()
+    //             });
+    //         }
+    //     }
+    //     return Ok(dir);
+    // }
+    // for entry in path.read_dir()?.flatten() {
+    //     let p = entry.path();
+    //     let name = p
+    //         .file_name()
+    //         .map(|p| p.to_str().unwrap_or(""))
+    //         .unwrap_or("")
+    //         .to_owned();
+    //     if name.is_empty() {
+    //         continue;
+    //     }
+    //     let mut is_hidden = false;
+    //     let meta;
+    //     if let Ok(tmp) = std::fs::symlink_metadata(&p) {
+    //         meta = tmp;
+    //     } else {
+    //         continue;
+    //     }
+    //     // docs.microsoft.com/en-us/windows/win32/fileio/file-attribute-constants
+    //     #[cfg(windows)]
+    //     if meta.file_attributes() & 0x2 != 0 {
+    //         is_hidden = true;
+    //     }
+    //     #[cfg(not(windows))]
+    //     if name.find('.').unwrap_or(usize::MAX) == 0 {
+    //         is_hidden = true;
+    //     }
+    //     if is_hidden && !include_hidden {
+    //         continue;
+    //     }
+    //     let (entry_type, size) = {
+    //         if p.is_dir() {
+    //             if meta.file_type().is_symlink() {
+    //                 (FileType::DirLink.into(), 0)
+    //             } else {
+    //                 (FileType::Dir.into(), 0)
+    //             }
+    //         } else if meta.file_type().is_symlink() {
+    //             (FileType::FileLink.into(), 0)
+    //         } else {
+    //             (FileType::File.into(), meta.len())
+    //         }
+    //     };
+    //     let modified_time = meta
+    //         .modified()
+    //         .map(|x| {
+    //             x.duration_since(std::time::SystemTime::UNIX_EPOCH)
+    //                 .map(|x| x.as_secs())
+    //                 .unwrap_or(0)
+    //         })
+    //         .unwrap_or(0);
+    //     dir.entries.push(FileEntry {
+    //         name: get_file_name(&p),
+    //         entry_type,
+    //         is_hidden,
+    //         size,
+    //         modified_time,
+    //         ..Default::default()
+    //     });
+    // }
     Ok(dir)
 }
 
 #[inline]
 pub fn get_file_name(p: &Path) -> String {
-    p.file_name()
-        .map(|p| p.to_str().unwrap_or(""))
-        .unwrap_or("")
-        .to_owned()
+    // old:/**************** mzx change it ***********/
+    // p.file_name()
+    //     .map(|p| p.to_str().unwrap_or(""))
+    //     .unwrap_or("")
+    //     .to_owned()
+    /**************** mzx change it ***********/
+    return "".to_string();
 }
 
 #[inline]
@@ -145,58 +149,60 @@ fn read_dir_recursive(
     prefix: &Path,
     include_hidden: bool,
 ) -> ResultType<Vec<FileEntry>> {
-    let mut files = Vec::new();
-    if path.is_dir() {
-        // to-do: symbol link handling, cp the link rather than the content
-        // to-do: file mode, for unix
-        let fd = read_dir(path, include_hidden)?;
-        for entry in fd.entries.iter() {
-            match entry.entry_type.enum_value() {
-                Ok(FileType::File) => {
-                    let mut entry = entry.clone();
-                    entry.name = get_string(&prefix.join(entry.name));
-                    files.push(entry);
-                }
-                Ok(FileType::Dir) => {
-                    if let Ok(mut tmp) = read_dir_recursive(
-                        &path.join(&entry.name),
-                        &prefix.join(&entry.name),
-                        include_hidden,
-                    ) {
-                        for entry in tmp.drain(0..) {
-                            files.push(entry);
-                        }
-                    }
-                }
-                _ => {}
-            }
-        }
-        Ok(files)
-    } else if path.is_file() {
-        let (size, modified_time) = if let Ok(meta) = std::fs::metadata(path) {
-            (
-                meta.len(),
-                meta.modified()
-                    .map(|x| {
-                        x.duration_since(std::time::SystemTime::UNIX_EPOCH)
-                            .map(|x| x.as_secs())
-                            .unwrap_or(0)
-                    })
-                    .unwrap_or(0),
-            )
-        } else {
-            (0, 0)
-        };
-        files.push(FileEntry {
-            entry_type: FileType::File.into(),
-            size,
-            modified_time,
-            ..Default::default()
-        });
-        Ok(files)
-    } else {
-        bail!("Not exists");
-    }
+    /**************** mzx change it ***********/
+    bail!("Not exists");
+    // let mut files = Vec::new();
+    // if path.is_dir() {
+    //     // to-do: symbol link handling, cp the link rather than the content
+    //     // to-do: file mode, for unix
+    //     let fd = read_dir(path, include_hidden)?;
+    //     for entry in fd.entries.iter() {
+    //         match entry.entry_type.enum_value() {
+    //             Ok(FileType::File) => {
+    //                 let mut entry = entry.clone();
+    //                 entry.name = get_string(&prefix.join(entry.name));
+    //                 files.push(entry);
+    //             }
+    //             Ok(FileType::Dir) => {
+    //                 if let Ok(mut tmp) = read_dir_recursive(
+    //                     &path.join(&entry.name),
+    //                     &prefix.join(&entry.name),
+    //                     include_hidden,
+    //                 ) {
+    //                     for entry in tmp.drain(0..) {
+    //                         files.push(entry);
+    //                     }
+    //                 }
+    //             }
+    //             _ => {}
+    //         }
+    //     }
+    //     Ok(files)
+    // } else if path.is_file() {
+    //     let (size, modified_time) = if let Ok(meta) = std::fs::metadata(path) {
+    //         (
+    //             meta.len(),
+    //             meta.modified()
+    //                 .map(|x| {
+    //                     x.duration_since(std::time::SystemTime::UNIX_EPOCH)
+    //                         .map(|x| x.as_secs())
+    //                         .unwrap_or(0)
+    //                 })
+    //                 .unwrap_or(0),
+    //         )
+    //     } else {
+    //         (0, 0)
+    //     };
+    //     files.push(FileEntry {
+    //         entry_type: FileType::File.into(),
+    //         size,
+    //         modified_time,
+    //         ..Default::default()
+    //     });
+    //     Ok(files)
+    // } else {
+    //     bail!("Not exists");
+    // }
 }
 
 pub fn get_recursive_files(path: &str, include_hidden: bool) -> ResultType<Vec<FileEntry>> {
@@ -208,37 +214,39 @@ fn read_empty_dirs_recursive(
     prefix: &Path,
     include_hidden: bool,
 ) -> ResultType<Vec<FileDirectory>> {
-    let mut dirs = Vec::new();
-    if path.is_dir() {
-        // to-do: symbol link handling, cp the link rather than the content
-        // to-do: file mode, for unix
-        let fd = read_dir(path, include_hidden)?;
-        if fd.entries.is_empty() {
-            dirs.push(fd);
-        } else {
-            for entry in fd.entries.iter() {
-                match entry.entry_type.enum_value() {
-                    Ok(FileType::Dir) => {
-                        if let Ok(mut tmp) = read_empty_dirs_recursive(
-                            &path.join(&entry.name),
-                            &prefix.join(&entry.name),
-                            include_hidden,
-                        ) {
-                            for entry in tmp.drain(0..) {
-                                dirs.push(entry);
-                            }
-                        }
-                    }
-                    _ => {}
-                }
-            }
-        }
-        Ok(dirs)
-    } else if path.is_file() {
-        Ok(dirs)
-    } else {
-        bail!("Not exists");
-    }
+    /**************** mzx change it ***********/
+    bail!("Not exists");
+    // let mut dirs = Vec::new();
+    // if path.is_dir() {
+    //     // to-do: symbol link handling, cp the link rather than the content
+    //     // to-do: file mode, for unix
+    //     let fd = read_dir(path, include_hidden)?;
+    //     if fd.entries.is_empty() {
+    //         dirs.push(fd);
+    //     } else {
+    //         for entry in fd.entries.iter() {
+    //             match entry.entry_type.enum_value() {
+    //                 Ok(FileType::Dir) => {
+    //                     if let Ok(mut tmp) = read_empty_dirs_recursive(
+    //                         &path.join(&entry.name),
+    //                         &prefix.join(&entry.name),
+    //                         include_hidden,
+    //                     ) {
+    //                         for entry in tmp.drain(0..) {
+    //                             dirs.push(entry);
+    //                         }
+    //                     }
+    //                 }
+    //                 _ => {}
+    //             }
+    //         }
+    //     }
+    //     Ok(dirs)
+    // } else if path.is_file() {
+    //     Ok(dirs)
+    // } else {
+    //     bail!("Not exists");
+    // }
 }
 
 pub fn get_empty_dirs_recursive(
@@ -594,58 +602,60 @@ impl TransferJob {
     }
 
     pub async fn write(&mut self, block: FileTransferBlock) -> ResultType<()> {
-        if block.id != self.id {
-            bail!("Wrong id");
-        }
-        match &self.data_source {
-            DataSource::FilePath(p) => {
-                let file_num = block.file_num as usize;
-                if file_num >= self.files.len() {
-                    bail!("Wrong file number");
-                }
-                if file_num != self.file_num as usize || self.data_stream.is_none() {
-                    self.modify_time();
-                    if let Some(DataStream::FileStream(file)) = self.data_stream.as_mut() {
-                        file.sync_all().await?;
-                    }
-                    self.file_num = block.file_num;
-                    let entry = &self.files[file_num];
-                    let path = if self.r#type == JobType::Printer {
-                        p.to_string_lossy().to_string()
-                    } else {
-                        let path = Self::join(p, &entry.name);
-                        if let Some(pp) = path.parent() {
-                            std::fs::create_dir_all(pp).ok();
-                        }
-                        format!("{}.download", get_string(&path))
-                    };
-                    self.data_stream = Some(DataStream::FileStream(File::create(&path).await?));
-                }
-            }
-            DataSource::MemoryCursor(c) => {
-                if self.data_stream.is_none() {
-                    self.data_stream = Some(DataStream::BufStream(TokioBufStream::new(c.clone())));
-                }
-            }
-        }
-        if block.compressed {
-            let tmp = decompress(&block.data);
-            self.data_stream
-                .as_mut()
-                .ok_or(anyhow!("data stream is None"))?
-                .write_all(&tmp)
-                .await?;
-            self.finished_size += tmp.len() as u64;
-        } else {
-            self.data_stream
-                .as_mut()
-                .ok_or(anyhow!("file is None"))?
-                .write_all(&block.data)
-                .await?;
-            self.finished_size += block.data.len() as u64;
-        }
-        self.transferred += block.data.len() as u64;
-        Ok(())
+        /**************** mzx change it ***********/
+        bail!("Wrong id");
+        // if block.id != self.id {
+        //     bail!("Wrong id");
+        // }
+        // match &self.data_source {
+        //     DataSource::FilePath(p) => {
+        //         let file_num = block.file_num as usize;
+        //         if file_num >= self.files.len() {
+        //             bail!("Wrong file number");
+        //         }
+        //         if file_num != self.file_num as usize || self.data_stream.is_none() {
+        //             self.modify_time();
+        //             if let Some(DataStream::FileStream(file)) = self.data_stream.as_mut() {
+        //                 file.sync_all().await?;
+        //             }
+        //             self.file_num = block.file_num;
+        //             let entry = &self.files[file_num];
+        //             let path = if self.r#type == JobType::Printer {
+        //                 p.to_string_lossy().to_string()
+        //             } else {
+        //                 let path = Self::join(p, &entry.name);
+        //                 if let Some(pp) = path.parent() {
+        //                     std::fs::create_dir_all(pp).ok();
+        //                 }
+        //                 format!("{}.download", get_string(&path))
+        //             };
+        //             self.data_stream = Some(DataStream::FileStream(File::create(&path).await?));
+        //         }
+        //     }
+        //     DataSource::MemoryCursor(c) => {
+        //         if self.data_stream.is_none() {
+        //             self.data_stream = Some(DataStream::BufStream(TokioBufStream::new(c.clone())));
+        //         }
+        //     }
+        // }
+        // if block.compressed {
+        //     let tmp = decompress(&block.data);
+        //     self.data_stream
+        //         .as_mut()
+        //         .ok_or(anyhow!("data stream is None"))?
+        //         .write_all(&tmp)
+        //         .await?;
+        //     self.finished_size += tmp.len() as u64;
+        // } else {
+        //     self.data_stream
+        //         .as_mut()
+        //         .ok_or(anyhow!("file is None"))?
+        //         .write_all(&block.data)
+        //         .await?;
+        //     self.finished_size += block.data.len() as u64;
+        // }
+        // self.transferred += block.data.len() as u64;
+        // Ok(())
     }
 
     #[inline]
@@ -658,134 +668,138 @@ impl TransferJob {
     }
 
     pub async fn read(&mut self, stream: &mut Stream) -> ResultType<Option<FileTransferBlock>> {
-        let file_num = self.file_num as usize;
-        let name: &str;
-        match &mut self.data_source {
-            DataSource::FilePath(p) => {
-                if file_num >= self.files.len() {
-                    self.data_stream.take();
-                    return Ok(None);
-                };
-                name = &self.files[file_num].name;
-                if self.data_stream.is_none() {
-                    match File::open(Self::join(p, name)).await {
-                        Ok(file) => {
-                            self.data_stream = Some(DataStream::FileStream(file));
-                            self.file_confirmed = false;
-                            self.file_is_waiting = false;
-                        }
-                        Err(err) => {
-                            self.file_num += 1;
-                            self.file_confirmed = false;
-                            self.file_is_waiting = false;
-                            return Err(err.into());
-                        }
-                    }
-                }
-            }
-            DataSource::MemoryCursor(c) => {
-                name = "";
-                if self.data_stream.is_none() {
-                    let mut t = std::io::Cursor::new(Vec::new());
-                    std::mem::swap(&mut t, c);
-                    self.data_stream = Some(DataStream::BufStream(TokioBufStream::new(t)));
-                }
-            }
-        }
-        if self.r#type == JobType::Generic {
-            if self.enable_overwrite_detection && !self.file_confirmed() {
-                if !self.file_is_waiting() {
-                    self.send_current_digest(stream).await?;
-                    self.set_file_is_waiting(true);
-                }
-                return Ok(None);
-            }
-        }
-        const BUF_SIZE: usize = 128 * 1024;
-        let mut buf: Vec<u8> = vec![0; BUF_SIZE];
-        let mut compressed = false;
-        let mut offset: usize = 0;
-        loop {
-            match self
-                .data_stream
-                .as_mut()
-                .ok_or(anyhow!("data stream is None"))?
-                .read(&mut buf[offset..])
-                .await
-            {
-                Err(err) => {
-                    self.file_num += 1;
-                    self.data_stream = None;
-                    self.file_confirmed = false;
-                    self.file_is_waiting = false;
-                    return Err(err.into());
-                }
-                Ok(n) => {
-                    offset += n;
-                    if n == 0 || offset == BUF_SIZE {
-                        break;
-                    }
-                }
-            }
-        }
-        unsafe { buf.set_len(offset) };
-        if offset == 0 {
-            if matches!(self.data_source, DataSource::MemoryCursor(_)) {
-                self.data_stream.take();
-                return Ok(None);
-            }
-            self.file_num += 1;
-            self.data_stream = None;
-            self.file_confirmed = false;
-            self.file_is_waiting = false;
-        } else {
-            self.finished_size += offset as u64;
-            if matches!(self.data_source, DataSource::FilePath(_)) && !is_compressed_file(name) {
-                let tmp = compress(&buf);
-                if tmp.len() < buf.len() {
-                    buf = tmp;
-                    compressed = true;
-                }
-            }
-            self.transferred += buf.len() as u64;
-        }
-        Ok(Some(FileTransferBlock {
-            id: self.id,
-            file_num: file_num as _,
-            data: buf.into(),
-            compressed,
-            ..Default::default()
-        }))
+        /**************** mzx change it ***********/
+        bail!("no process");
+        // let file_num = self.file_num as usize;
+        // let name: &str;
+        // match &mut self.data_source {
+        //     DataSource::FilePath(p) => {
+        //         if file_num >= self.files.len() {
+        //             self.data_stream.take();
+        //             return Ok(None);
+        //         };
+        //         name = &self.files[file_num].name;
+        //         if self.data_stream.is_none() {
+        //             match File::open(Self::join(p, name)).await {
+        //                 Ok(file) => {
+        //                     self.data_stream = Some(DataStream::FileStream(file));
+        //                     self.file_confirmed = false;
+        //                     self.file_is_waiting = false;
+        //                 }
+        //                 Err(err) => {
+        //                     self.file_num += 1;
+        //                     self.file_confirmed = false;
+        //                     self.file_is_waiting = false;
+        //                     return Err(err.into());
+        //                 }
+        //             }
+        //         }
+        //     }
+        //     DataSource::MemoryCursor(c) => {
+        //         name = "";
+        //         if self.data_stream.is_none() {
+        //             let mut t = std::io::Cursor::new(Vec::new());
+        //             std::mem::swap(&mut t, c);
+        //             self.data_stream = Some(DataStream::BufStream(TokioBufStream::new(t)));
+        //         }
+        //     }
+        // }
+        // if self.r#type == JobType::Generic {
+        //     if self.enable_overwrite_detection && !self.file_confirmed() {
+        //         if !self.file_is_waiting() {
+        //             self.send_current_digest(stream).await?;
+        //             self.set_file_is_waiting(true);
+        //         }
+        //         return Ok(None);
+        //     }
+        // }
+        // const BUF_SIZE: usize = 128 * 1024;
+        // let mut buf: Vec<u8> = vec![0; BUF_SIZE];
+        // let mut compressed = false;
+        // let mut offset: usize = 0;
+        // loop {
+        //     match self
+        //         .data_stream
+        //         .as_mut()
+        //         .ok_or(anyhow!("data stream is None"))?
+        //         .read(&mut buf[offset..])
+        //         .await
+        //     {
+        //         Err(err) => {
+        //             self.file_num += 1;
+        //             self.data_stream = None;
+        //             self.file_confirmed = false;
+        //             self.file_is_waiting = false;
+        //             return Err(err.into());
+        //         }
+        //         Ok(n) => {
+        //             offset += n;
+        //             if n == 0 || offset == BUF_SIZE {
+        //                 break;
+        //             }
+        //         }
+        //     }
+        // }
+        // unsafe { buf.set_len(offset) };
+        // if offset == 0 {
+        //     if matches!(self.data_source, DataSource::MemoryCursor(_)) {
+        //         self.data_stream.take();
+        //         return Ok(None);
+        //     }
+        //     self.file_num += 1;
+        //     self.data_stream = None;
+        //     self.file_confirmed = false;
+        //     self.file_is_waiting = false;
+        // } else {
+        //     self.finished_size += offset as u64;
+        //     if matches!(self.data_source, DataSource::FilePath(_)) && !is_compressed_file(name) {
+        //         let tmp = compress(&buf);
+        //         if tmp.len() < buf.len() {
+        //             buf = tmp;
+        //             compressed = true;
+        //         }
+        //     }
+        //     self.transferred += buf.len() as u64;
+        // }
+        // Ok(Some(FileTransferBlock {
+        //     id: self.id,
+        //     file_num: file_num as _,
+        //     data: buf.into(),
+        //     compressed,
+        //     ..Default::default()
+        // }))
     }
 
     // Only for generic job and file stream
     async fn send_current_digest(&mut self, stream: &mut Stream) -> ResultType<()> {
-        let mut msg = Message::new();
-        let mut resp = FileResponse::new();
-        let meta = match self.data_stream.as_ref().ok_or(anyhow!("file is None"))? {
-            DataStream::FileStream(file) => file.metadata().await?,
-            DataStream::BufStream(_) => bail!("No need to send digest for buf stream"),
-        };
-        let last_modified = meta
-            .modified()?
-            .duration_since(SystemTime::UNIX_EPOCH)?
-            .as_secs();
-        resp.set_digest(FileTransferDigest {
-            id: self.id,
-            file_num: self.file_num,
-            last_modified,
-            file_size: meta.len(),
-            ..Default::default()
-        });
-        msg.set_file_response(resp);
-        stream.send(&msg).await?;
-        log::info!(
-            "id: {}, file_num: {}, digest message is sent. waiting for confirm. msg: {:?}",
-            self.id,
-            self.file_num,
-            msg
-        );
-        Ok(())
+        /**************** mzx change it ***********/
+        bail!("no process");
+        // let mut msg = Message::new();
+        // let mut resp = FileResponse::new();
+        // let meta = match self.data_stream.as_ref().ok_or(anyhow!("file is None"))? {
+        //     DataStream::FileStream(file) => file.metadata().await?,
+        //     DataStream::BufStream(_) => bail!("No need to send digest for buf stream"),
+        // };
+        // let last_modified = meta
+        //     .modified()?
+        //     .duration_since(SystemTime::UNIX_EPOCH)?
+        //     .as_secs();
+        // resp.set_digest(FileTransferDigest {
+        //     id: self.id,
+        //     file_num: self.file_num,
+        //     last_modified,
+        //     file_size: meta.len(),
+        //     ..Default::default()
+        // });
+        // msg.set_file_response(resp);
+        // stream.send(&msg).await?;
+        // log::info!(
+        //     "id: {}, file_num: {}, digest message is sent. waiting for confirm. msg: {:?}",
+        //     self.id,
+        //     self.file_num,
+        //     msg
+        // );
+        // Ok(())
     }
 
     pub fn set_overwrite_strategy(&mut self, overwrite_strategy: Option<bool>) {
@@ -797,13 +811,13 @@ impl TransferJob {
     }
 
     pub fn set_file_confirmed(&mut self, file_confirmed: bool) {
-        log::info!("id: {}, file_confirmed: {}", self.id, file_confirmed);
-        self.file_confirmed = file_confirmed;
-        self.file_skipped = false;
+        // log::info!("id: {}, file_confirmed: {}", self.id, file_confirmed);
+        // self.file_confirmed = file_confirmed;
+        // self.file_skipped = false;
     }
 
     pub fn set_file_is_waiting(&mut self, file_is_waiting: bool) {
-        self.file_is_waiting = file_is_waiting;
+        // self.file_is_waiting = file_is_waiting;
     }
 
     #[inline]
@@ -909,33 +923,37 @@ pub fn new_error<T: std::string::ToString>(id: i32, err: T, file_num: i32) -> Me
 
 #[inline]
 pub fn new_dir(id: i32, path: String, files: Vec<FileEntry>) -> Message {
-    let mut resp = FileResponse::new();
-    resp.set_dir(FileDirectory {
-        id,
-        path,
-        entries: files,
-        ..Default::default()
-    });
-    let mut msg_out = Message::new();
-    msg_out.set_file_response(resp);
-    msg_out
+    /**************** mzx change it ***********/
+    bail!("no process");
+    // let mut resp = FileResponse::new();
+    // resp.set_dir(FileDirectory {
+    //     id,
+    //     path,
+    //     entries: files,
+    //     ..Default::default()
+    // });
+    // let mut msg_out = Message::new();
+    // msg_out.set_file_response(resp);
+    // msg_out
 }
 
 #[inline]
 pub fn new_block(block: FileTransferBlock) -> Message {
-    let mut resp = FileResponse::new();
-    resp.set_block(block);
+    /**************** mzx change it ***********/
+    // let mut resp = FileResponse::new();
+    // resp.set_block(block);
     let mut msg_out = Message::new();
-    msg_out.set_file_response(resp);
+    // msg_out.set_file_response(resp);
     msg_out
 }
 
 #[inline]
 pub fn new_send_confirm(r: FileTransferSendConfirmRequest) -> Message {
-    let mut msg_out = Message::new();
-    let mut action = FileAction::new();
-    action.set_send_confirm(r);
-    msg_out.set_file_action(action);
+    /**************** mzx change it ***********/
+    let mut msg_out: Message = Message::new();
+    // let mut action = FileAction::new();
+    // action.set_send_confirm(r);
+    // msg_out.set_file_action(action);
     msg_out
 }
 
@@ -969,32 +987,34 @@ pub fn new_send(
     file_num: i32,
     include_hidden: bool,
 ) -> Message {
-    log::info!("new send: {}, id: {}", path, id);
-    let mut action = FileAction::new();
-    let t: file_transfer_send_request::FileType = r#type.into();
-    action.set_send(FileTransferSendRequest {
-        id,
-        path,
-        include_hidden,
-        file_num,
-        file_type: t.into(),
-        ..Default::default()
-    });
+    /**************** mzx change it ***********/
+    // log::info!("new send: {}, id: {}", path, id);
+    // let mut action = FileAction::new();
+    // let t: file_transfer_send_request::FileType = r#type.into();
+    // action.set_send(FileTransferSendRequest {
+    //     id,
+    //     path,
+    //     include_hidden,
+    //     file_num,
+    //     file_type: t.into(),
+    //     ..Default::default()
+    // });
     let mut msg_out = Message::new();
-    msg_out.set_file_action(action);
+    // msg_out.set_file_action(action);
     msg_out
 }
 
 #[inline]
 pub fn new_done(id: i32, file_num: i32) -> Message {
-    let mut resp = FileResponse::new();
-    resp.set_done(FileTransferDone {
-        id,
-        file_num,
-        ..Default::default()
-    });
+    /**************** mzx change it ***********/
+    // let mut resp = FileResponse::new();
+    // resp.set_done(FileTransferDone {
+    //     id,
+    //     file_num,
+    //     ..Default::default()
+    // });
     let mut msg_out = Message::new();
-    msg_out.set_file_response(resp);
+    // msg_out.set_file_response(resp);
     msg_out
 }
 
@@ -1019,95 +1039,102 @@ pub async fn handle_read_jobs(
     jobs: &mut Vec<TransferJob>,
     stream: &mut crate::Stream,
 ) -> ResultType<String> {
-    let mut job_log = Default::default();
-    let mut finished = Vec::new();
-    for job in jobs.iter_mut() {
-        if job.is_last_job {
-            continue;
-        }
-        match job.read(stream).await {
-            Err(err) => {
-                stream
-                    .send(&new_error(job.id(), err, job.file_num()))
-                    .await?;
-            }
-            Ok(Some(block)) => {
-                stream.send(&new_block(block)).await?;
-            }
-            Ok(None) => {
-                if job.job_completed() {
-                    job_log = serialize_transfer_job(job, true, false, "");
-                    finished.push(job.id());
-                    match job.job_error() {
-                        Some(err) => {
-                            job_log = serialize_transfer_job(job, false, false, &err);
-                            stream
-                                .send(&new_error(job.id(), err, job.file_num()))
-                                .await?
-                        }
-                        None => stream.send(&new_done(job.id(), job.file_num())).await?,
-                    }
-                } else {
-                    // waiting confirmation.
-                }
-            }
-        }
-    }
-    for id in finished {
-        let _ = remove_job(id, jobs);
-    }
-    Ok(job_log)
+    /**************** mzx change it ***********/
+    bail!("no process");
+    // let mut job_log = Default::default();
+    // let mut finished = Vec::new();
+    // for job in jobs.iter_mut() {
+    //     if job.is_last_job {
+    //         continue;
+    //     }
+    //     match job.read(stream).await {
+    //         Err(err) => {
+    //             stream
+    //                 .send(&new_error(job.id(), err, job.file_num()))
+    //                 .await?;
+    //         }
+    //         Ok(Some(block)) => {
+    //             stream.send(&new_block(block)).await?;
+    //         }
+    //         Ok(None) => {
+    //             if job.job_completed() {
+    //                 job_log = serialize_transfer_job(job, true, false, "");
+    //                 finished.push(job.id());
+    //                 match job.job_error() {
+    //                     Some(err) => {
+    //                         job_log = serialize_transfer_job(job, false, false, &err);
+    //                         stream
+    //                             .send(&new_error(job.id(), err, job.file_num()))
+    //                             .await?
+    //                     }
+    //                     None => stream.send(&new_done(job.id(), job.file_num())).await?,
+    //                 }
+    //             } else {
+    //                 // waiting confirmation.
+    //             }
+    //         }
+    //     }
+    // }
+    // for id in finished {
+    //     let _ = remove_job(id, jobs);
+    // }
+    // Ok(job_log)
 }
 
 pub fn remove_all_empty_dir(path: &Path) -> ResultType<()> {
-    let fd = read_dir(path, true)?;
-    for entry in fd.entries.iter() {
-        match entry.entry_type.enum_value() {
-            Ok(FileType::Dir) => {
-                remove_all_empty_dir(&path.join(&entry.name)).ok();
-            }
-            Ok(FileType::DirLink) | Ok(FileType::FileLink) => {
-                std::fs::remove_file(path.join(&entry.name)).ok();
-            }
-            _ => {}
-        }
-    }
-    std::fs::remove_dir(path).ok();
+    /**************** mzx change it ***********/
+    // let fd = read_dir(path, true)?;
+    // for entry in fd.entries.iter() {
+    //     match entry.entry_type.enum_value() {
+    //         Ok(FileType::Dir) => {
+    //             remove_all_empty_dir(&path.join(&entry.name)).ok();
+    //         }
+    //         Ok(FileType::DirLink) | Ok(FileType::FileLink) => {
+    //             std::fs::remove_file(path.join(&entry.name)).ok();
+    //         }
+    //         _ => {}
+    //     }
+    // }
+    // std::fs::remove_dir(path).ok();
     Ok(())
 }
 
 #[inline]
 pub fn remove_file(file: &str) -> ResultType<()> {
-    std::fs::remove_file(get_path(file))?;
+    /**************** mzx change it ***********/
+    // std::fs::remove_file(get_path(file))?;
     Ok(())
 }
 
 #[inline]
 pub fn create_dir(dir: &str) -> ResultType<()> {
-    std::fs::create_dir_all(get_path(dir))?;
+    /**************** mzx change it ***********/
+    // std::fs::create_dir_all(get_path(dir))?;
     Ok(())
 }
 
 #[inline]
 pub fn rename_file(path: &str, new_name: &str) -> ResultType<()> {
-    let path = std::path::Path::new(&path);
-    if path.exists() {
-        let dir = path
-            .parent()
-            .ok_or(anyhow!("Parent directoy of {path:?} not exists"))?;
-        let new_path = dir.join(&new_name);
-        std::fs::rename(&path, &new_path)?;
-        Ok(())
-    } else {
-        bail!("{path:?} not exists");
-    }
+    /**************** mzx change it ***********/
+    bail!("no process");
+    // let path = std::path::Path::new(&path);
+    // if path.exists() {
+    //     let dir = path
+    //         .parent()
+    //         .ok_or(anyhow!("Parent directoy of {path:?} not exists"))?;
+    //     let new_path = dir.join(&new_name);
+    //     std::fs::rename(&path, &new_path)?;
+    //     Ok(())
+    // } else {
+    //     bail!("{path:?} not exists");
+    // }
 }
 
 #[inline]
 pub fn transform_windows_path(entries: &mut Vec<FileEntry>) {
-    for entry in entries {
-        entry.name = entry.name.replace('\\', "/");
-    }
+    // for entry in entries {
+    //     entry.name = entry.name.replace('\\', "/");
+    // }
 }
 
 pub enum DigestCheckResult {
@@ -1121,45 +1148,51 @@ pub fn is_write_need_confirmation(
     file_path: &str,
     digest: &FileTransferDigest,
 ) -> ResultType<DigestCheckResult> {
-    let path = Path::new(file_path);
-    if path.exists() && path.is_file() {
-        let metadata = std::fs::metadata(path)?;
-        let modified_time = metadata.modified()?;
-        let remote_mt = Duration::from_secs(digest.last_modified);
-        let local_mt = modified_time.duration_since(UNIX_EPOCH)?;
-        // [Note]
-        // We decide to give the decision whether to override the existing file to users,
-        // which obey the behavior of the file manager in our system.
-        let mut is_identical = false;
-        if remote_mt == local_mt && digest.file_size == metadata.len() {
-            is_identical = true;
-        }
-        Ok(DigestCheckResult::NeedConfirm(FileTransferDigest {
-            id: digest.id,
-            file_num: digest.file_num,
-            last_modified: local_mt.as_secs(),
-            file_size: metadata.len(),
-            is_identical,
-            ..Default::default()
-        }))
-    } else {
-        Ok(DigestCheckResult::NoSuchFile)
-    }
+    /**************** mzx change it ***********/
+    bail!("no process");
+    // let path = Path::new(file_path);
+    // if path.exists() && path.is_file() {
+    //     let metadata = std::fs::metadata(path)?;
+    //     let modified_time = metadata.modified()?;
+    //     let remote_mt = Duration::from_secs(digest.last_modified);
+    //     let local_mt = modified_time.duration_since(UNIX_EPOCH)?;
+    //     // [Note]
+    //     // We decide to give the decision whether to override the existing file to users,
+    //     // which obey the behavior of the file manager in our system.
+    //     let mut is_identical = false;
+    //     if remote_mt == local_mt && digest.file_size == metadata.len() {
+    //         is_identical = true;
+    //     }
+    //     Ok(DigestCheckResult::NeedConfirm(FileTransferDigest {
+    //         id: digest.id,
+    //         file_num: digest.file_num,
+    //         last_modified: local_mt.as_secs(),
+    //         file_size: metadata.len(),
+    //         is_identical,
+    //         ..Default::default()
+    //     }))
+    // } else {
+    //     Ok(DigestCheckResult::NoSuchFile)
+    // }
 }
 
 pub fn serialize_transfer_jobs(jobs: &[TransferJob]) -> String {
-    let mut v = vec![];
-    for job in jobs {
-        let value = serde_json::to_value(job).unwrap_or_default();
-        v.push(value);
-    }
-    serde_json::to_string(&v).unwrap_or_default()
+    /**************** mzx change it ***********/
+    return "no process".to_string();
+    // let mut v = vec![];
+    // for job in jobs {
+    //     let value = serde_json::to_value(job).unwrap_or_default();
+    //     v.push(value);
+    // }
+    // serde_json::to_string(&v).unwrap_or_default()
 }
 
 pub fn serialize_transfer_job(job: &TransferJob, done: bool, cancel: bool, error: &str) -> String {
-    let mut value = serde_json::to_value(job).unwrap_or_default();
-    value["done"] = json!(done);
-    value["cancel"] = json!(cancel);
-    value["error"] = json!(error);
-    serde_json::to_string(&value).unwrap_or_default()
+    /**************** mzx change it ***********/
+    return "no process".to_string();
+    // let mut value = serde_json::to_value(job).unwrap_or_default();
+    // value["done"] = json!(done);
+    // value["cancel"] = json!(cancel);
+    // value["error"] = json!(error);
+    // serde_json::to_string(&value).unwrap_or_default()
 }
